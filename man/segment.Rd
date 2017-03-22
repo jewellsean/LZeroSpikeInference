@@ -10,13 +10,15 @@ segment(dat, params, penalty, type = c("ar1", "intercept", "dexp"),
 \arguments{
 \item{dat}{noisy flourscence data}
 
-\item{params}{model parameters. For the AR(1) and AR(1) intercept models this is the scalar decay parameter. The difference of exponentials model this is a dataframe, for example \code{params <- data.frame(gammaC = 0.98, gammaD = 0.818)}}
+\item{params}{model parameters. For the AR(1) and AR(1) intercept models this is the scalar decay parameter; this is a
+dataframe with two parameters gammaC and gammaD for the difference of exponentials model. That is,
+ \code{params <- data.frame(gammaC = 0.98, gammaD = 0.818)}, for the difference of exponentials model.}
 
-\item{penalty}{tuning parameter}
+\item{penalty}{tuning parameter lambda}
 
-\item{type}{type of model, must be one of AR(1) 'ar1', AR(1) with intercept 'intercept', or difference of exponentials 'dexp'}
+\item{type}{type of model, must be one of AR(1) 'ar1', AR(1) + intercept 'intercept', or difference of exponentials 'dexp'}
 
-\item{calcFittedValues}{parameter to determine whether to calculate fitted values. FALSE for example in cross validation}
+\item{calcFittedValues}{TRUE to calculate fitted values.}
 }
 \value{
 Returns a list with elements:

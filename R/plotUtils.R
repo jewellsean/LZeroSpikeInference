@@ -1,8 +1,8 @@
 #' Plot the solution to an L0 segmentation problem
 #' @param lzeroFit output from running a segmentation
-#' @param trueSpikes if true spikes are known; this plots them
-#' @param xTimes times other than standard index
-#' @param spikeTimes if spike times are known on the same scale as xtimes (in this case no not include trueSpikes)
+#' @param trueSpikes if true spikes are known and provided this adds tick marks at specified index locations
+#' @param xTimes timeseries corresponding to the time that each index of the fluorescence data correspond to. Include to plot the x-axis on this scale
+#' @param spikeTimes times, on the same scale as xTimes, that spikes occur in the true (ground truth) data
 #'
 #' @export
 #'

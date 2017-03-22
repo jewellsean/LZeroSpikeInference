@@ -1,11 +1,15 @@
-#' Simulate flourscence trace based on generative model in paper
+#' Simulate fluorescence trace based on simple generative model
+#' y_t = c_t + eps, eps ~ N(0, sd)
+#' c_t = decay * c_{t-1} + s_t
+#' s_t ~ Pois(poisRate)
+#'
 #' @param n number of timesteps
 #' @param seed random seed
 #' @param poisRate Poisson mean spike
 #' @param decay ar(1) decay rate
 #' @param sd standard deviation for white noise process
 #'
-#' @return list of spikes, flourscence, and concentration
+#' @return list of spikes, fluorescence, and calcium concentration
 #'
 #' @examples
 #' simulateAR1(n = 100, seed = 1, poisRate = 0.05, decay = 0.998, sd = 0.05)

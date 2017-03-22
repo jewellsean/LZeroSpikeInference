@@ -1,10 +1,10 @@
 Package: LZeroSpikeInference
 Type: Package
-Title: L0 spike inference for fluorescent intensity traces
-Version: 0.1.0
+Title: Exact Spike Train Inference Via L0 Optimization
+Version: 0.1.1
 Authors@R: person("Sean", "Jewell", email = "swjewell@uw.edu",
                   role = c("aut", "cre"))
-Description: This package solves an L0 problem describing neuron spike dynamics.
+Description: This package implements algorithms described in Jewell and Witten, Exact Spike Train Inference Via L0 Optimization (2017). 
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

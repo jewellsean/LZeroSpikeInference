@@ -200,10 +200,12 @@ computeFittedValues <- function(dat, changePts, params, type) {
 
 #' Segments based on type of model and penalty
 #' @param dat noisy flourscence data
-#' @param params model parameters. For the AR(1) and AR(1) intercept models this is the scalar decay parameter. The difference of exponentials model this is a dataframe, for example \code{params <- data.frame(gammaC = 0.98, gammaD = 0.818)}
-#' @param penalty tuning parameter
-#' @param type type of model, must be one of AR(1) 'ar1', AR(1) with intercept 'intercept', or difference of exponentials 'dexp'
-#' @param calcFittedValues parameter to determine whether to calculate fitted values. FALSE for example in cross validation
+#' @param params model parameters. For the AR(1) and AR(1) intercept models this is the scalar decay parameter; this is a
+#' dataframe with two parameters gammaC and gammaD for the difference of exponentials model. That is,
+#'  \code{params <- data.frame(gammaC = 0.98, gammaD = 0.818)}, for the difference of exponentials model.
+#' @param penalty tuning parameter lambda
+#' @param type type of model, must be one of AR(1) 'ar1', AR(1) + intercept 'intercept', or difference of exponentials 'dexp'
+#' @param calcFittedValues  TRUE to calculate fitted values.
 #'
 #' @return Returns a list with elements:
 #' @return \code{changePts} the set of changepoints

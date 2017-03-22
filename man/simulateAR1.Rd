@@ -2,7 +2,10 @@
 % Please edit documentation in R/simulate.R
 \name{simulateAR1}
 \alias{simulateAR1}
-\title{Simulate flourscence trace based on generative model in paper}
+\title{Simulate fluorescence trace based on simple generative model
+y_t = c_t + eps, eps ~ N(0, sd)
+c_t = decay * c_{t-1} + s_t
+s_t ~ Pois(poisRate)}
 \usage{
 simulateAR1(n, seed, poisRate, decay, sd)
 }
@@ -18,10 +21,13 @@ simulateAR1(n, seed, poisRate, decay, sd)
 \item{sd}{standard deviation for white noise process}
 }
 \value{
-list of spikes, flourscence, and concentration
+list of spikes, fluorescence, and calcium concentration
 }
 \description{
-Simulate flourscence trace based on generative model in paper
+Simulate fluorescence trace based on simple generative model
+y_t = c_t + eps, eps ~ N(0, sd)
+c_t = decay * c_{t-1} + s_t
+s_t ~ Pois(poisRate)
 }
 \examples{
 simulateAR1(n = 100, seed = 1, poisRate = 0.05, decay = 0.998, sd = 0.05)

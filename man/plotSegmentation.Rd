@@ -10,11 +10,11 @@ plotSegmentation(lzeroFit, trueSpikes = NULL, xTimes = NULL,
 \arguments{
 \item{lzeroFit}{output from running a segmentation}
 
-\item{trueSpikes}{if true spikes are known; this plots them}
+\item{trueSpikes}{if true spikes are known and provided this adds tick marks at specified index locations}
 
-\item{xTimes}{times other than standard index}
+\item{xTimes}{timeseries corresponding to the time that each index of the fluorescence data correspond to. Include to plot the x-axis on this scale}
 
-\item{spikeTimes}{if spike times are known on the same scale as xtimes (in this case no not include trueSpikes)}
+\item{spikeTimes}{times, on the same scale as xTimes, that spikes occur in the true (ground truth) data}
 }
 \description{
 Plot the solution to an L0 segmentation problem
