@@ -1,13 +1,76 @@
 #' Cross-validate and optimize model parameters
+#'
+#' @details
+#' We perform cross-validation over a one-dimensional grid of \eqn{\lambda} values.
+#'  For each value of \eqn{\lambda} in this grid, we solve the corresponding optimization problem, that is, one of
+#'
+#' \strong{AR(1)-model:}
+#' \deqn{\underset{c_1,\ldots,c_T}{\mathrm{minimize}}\left\{  \frac{1}{2} \sum_{t=1}^T \left( y_t - c_t \right)^2 + \lambda \sum_{t=2}^T 1_{\left(c_t \neq \gamma c_{t-1}  \right) }\right\},}
+#' for the global optimum, where $y_t$ is the observed fluorescence at the tth
+#' timepoint.
+#'
+#' \strong{AR(1) with intercept:}
+#'\deqn{\underset{c_1,\ldots,c_T,   \beta_{01}, \ldots, \beta_{0T}}{\mathrm{minimize}}\left\{\frac12\sum_{t = 1}^{T} (y_{t} - c_{t} - \beta_{0t})^{2} + \lambda \sum_{t = 2}^{T} 1_{\left(c_{t} \neq \gamma c_{t-1}, \beta_{0t} \neq \beta_{0,t-1}\right)}\right\},}
+#' where the indicator variable \eqn{1_{(A,B)}} equals 1 if the event \eqn{A \cup B} holds, and equals zero otherwise.
+#'
+#' \strong{Difference of Exponentials:}
+#'\deqn{\underset{c_1,\ldots,c_T,  d_{1},\ldots,d_{T}}{\mathrm{minimize}}\left\{ \frac12 \sum_{t=1}^{T}\left( y_{t} - (c_{t} - d_{t})\right)^{2} + \lambda \sum_{t =2}^{T} 1_{\left(c_{t}\neq \gamma_{c}c_{t-1}, d_{t} \neq \gamma_{d}d_{t-1}\right)}\right\}.}
+#' on a training set using a candidate value for \eqn{\gamma}. Given the resulting set of changepoints, we solve a constrained #' optimization problem for \eqn{\gamma}. We then refit the optimization problem with the optimized value of \eqn{\gamma},
+#' and then evaluate the mean squared error (MSE) on a hold-out set. Note that in the final output of the algorithm,
+#' we take the square root of the optimal value of \eqn{\gamma} in order to address the fact that the cross-validation
+#' scheme makes use of training and test sets consisting of alternately-spaced timesteps.
+#'
+#' If there is a tuning parameter lambdaT in the path [lambdaMin, lambdaMax] that produces a fit with
+#' less than 1 spike per 10,000 timesteps the path is truncated to [lambdaMin, lambdaT] and a warning is produced.
+#'
 #' See Algorithm 3 of Jewell and Witten (2017)
 #' Exact Spike Train Inference Via L0 Optimization
+#' @seealso
+#' \strong{Estimate spikes:}
+#' \code{\link{estimateSpikes}},
+#' \code{\link{print.estimatedSpikes}},
+#' \code{\link{plot.estimatedSpikes}}.
 #'
+#' \strong{Cross validation:}
+#' \code{\link{cv.estimateSpikes}},
+#' \code{\link{print.cvSpike}},
+#' \code{\link{plot.cvSpike}}.
+#'
+#' \strong{Simulation:}
+#' \code{\link{simulateAR1}},
+#' \code{\link{simulateDexp}},
+#' \code{\link{plot.simdata}}.
+#'
+#' @examples
+#'
+#' sim <- simulateAR1(n = 500, gam = 0.998, poisMean = 0.009, sd = 0.05, seed = 1)
+#'
+#' # AR(1) model
+#' outAR1 <- cv.estimateSpikes(sim$fl, type = "ar1")
+#' plot(outAR1)
+#' print(outAR1)
+#' fit <- estimateSpikes(sim$fl, gam = outAR1$optimalGam[outAR1$index1SE, 1],
+#' lambda = outAR1$lambda1SE, type = "ar1")
+#' plot(fit)
+#'
+#' # AR(1) + intercept model
+#' outAR1Intercept <- cv.estimateSpikes(sim$fl, type = "intercept",
+#' lambdas = seq(0.1, 5, length.out = 10))
+#' plot(outAR1Intercept)
+#' print(outAR1Intercept)
+#' fit <- estimateSpikes(sim$fl, gam = outAR1Intercept$optimalGam[outAR1Intercept$index1SE, 1],
+#'  lambda = outAR1Intercept$lambda1SE, type = "intercept")
+#' plot(fit)
+#'
+#' # Difference of exponentials model
+#' sim <- simulateDexp(n = 500, gams = c(0.998, 0.7), poisMean = 0.009, sd = 0.05, seed = 1)
+#' outCVDexp <- cv.estimateSpikes(sim$fl, type = "dexp", gam = c(0.998, 0.7))
+#' plot(outCVDexp)
+#' fit <- estimateSpikes(sim$fl, gam = c(0.998, 0.7), lambda = outCVDexp$lambda1SE, type = "dexp")
+#' plot(fit)
 #' @param dat fluorescence trace (a vector)
-#' @param params model parameters. For the AR(1) and AR(1) intercept models this is the scalar decay parameter; this is a
-#' dataframe with two parameters gammaC and gammaD for the difference of exponentials model. That is,
-#' \code{params <- data.frame(gammaC = 0.98, gammaD = 0.818)}, for the difference of exponentials model.
 #' @param type type of model, must be one of AR(1) 'ar1', AR(1) with intercept 'intercept', or difference of exponentials 'dexp'
-#' @param optimizeParams whether the model parameters should be optimized (TRUE) or just CV of the tuning parameter (FALSE)
+#' @param gam a scalar value for the AR(1)/AR(1) + intercept decay parameter or a vector (gammaC, gammaD) for the dexp model. If no value is provided an optimal value is selected for each tuning parameter
 #' @param nLambdas number of tuning parameters to estimate the model (grid of values is automatically produced)
 #' @param lambdas vector of tuning parameters to use in cross-validation
 #'
@@ -15,60 +78,18 @@
 #' @return \code{cvError} the MSE for each tuning parameter
 #' @return \code{cvSE} the SE for the MSE for each tuning parameter
 #' @return \code{lambdas} tuning parameters
-#' @return \code{params} matrix of (optimized) parameters, rows correspond to tuning parameters, columns correspond to optimized parameter
+#' @return \code{optimalGam} matrix of (optimized) parameters, rows correspond to tuning parameters, columns correspond to optimized parameter
 #' @return \code{lambdaMin} tuning parameter that gives the smallest MSE
-#' @return \code{lamnda1SE} 1 SE tuning parameter
+#' @return \code{lambda1SE} 1 SE tuning parameter
 #' @return \code{indexMin} the index corresponding to lambdaMin
 #' @return \code{index1SE} the index corresponding to lambda1SE
 #'
 #' @examples
 #'
-#' sampleData <- simulateAR1(n = 500, seed = 1, poisRate = 0.01, decay = 0.998, sd = 0.15)
-#'
-#' # AR(1) model
-#' # Select tuning parameter with 1 SE rule
-#' cvOut <- cv(sampleData$fl, params = 0.998, type = "ar1", optimizeParams = FALSE)
-#' plotCV(cvOut)
-#' fit <- segment(sampleData$fl, params = 0.998, penalty = cvOut$lambda1SE, type = "ar1")
-#' plotSegmentation(fit, trueSpikes = sampleData$spikes)
-#'
-#' # AR(1) model
-#' # Select tuning parameter with 1 SE rule, provide tuning parameters
-#' cvOut <- cv(sampleData$fl, params = 0.998, type = "ar1", optimizeParams = FALSE,
-#' lambdas = 10^seq(-1, 2, length.out = 10))
-#' plotCV(cvOut)
-#' fit <- segment(sampleData$fl, params = 0.998, penalty = cvOut$lambda1SE, type = "ar1")
-#' plotSegmentation(fit, trueSpikes = sampleData$spikes)
-#'
-#' # AR(1) model
-#' # Select tuning parameter with 1 SE rule and optimize decay parameter
-#' cvOut <- cv(sampleData$fl, params = 0.998, type = "ar1", optimizeParams = TRUE)
-#' plotCV(cvOut)
-#' fit <- segment(sampleData$fl, params = cvOut$params[cvOut$index1SE, 1],
-#' penalty = cvOut$lambda1SE, type = "ar1")
-#' plotSegmentation(fit, trueSpikes = sampleData$spikes)
-#'
-#' # AR(1) + intercept model
-#' # Select tuning parameter with 1 SE rule and optimize decay parameter
-#' cvOut <- cv(sampleData$fl, params = 0.998, type = "intercept", optimizeParams = TRUE)
-#' plotCV(cvOut)
-#' fit <- segment(sampleData$fl, params = cvOut$params[cvOut$index1SE, 1],
-#' penalty = cvOut$lambda1SE, type = "ar1")
-#' plotSegmentation(fit, trueSpikes = sampleData$spikes)
-#'
-#' # Difference of exponentials model
-#' # Select tuning parameter with 1 SE rule and optimize both model parameters
-#' params <- data.frame(gammaC = 0.998, gammaD = 0.818)
-#' cvOut <- cv(sampleData$fl, params = params, type = "dexp", optimizeParams = TRUE)
-#' plotCV(cvOut)
-#' optimParams <- data.frame(t(cvOut$params[cvOut$index1SE, ]))
-#' fit <- segment(sampleData$fl, params = optimParams, penalty = cvOut$lambda1SE, type = "dexp")
-#' plotSegmentation(fit, trueSpikes = sampleData$spikes)
-#'
-#'
 #' @export
 #'
-cv <- function(dat, params, type = "ar1", optimizeParams = TRUE, nLambdas = 10, lambdas = NULL) {
+cv.estimateSpikes <- function(dat, type = "ar1", gam = NULL,
+                              lambdas = NULL, nLambdas = 10) {
     k <- 2  ## number of folds
     n <- length(dat)
 
@@ -76,7 +97,20 @@ cv <- function(dat, params, type = "ar1", optimizeParams = TRUE, nLambdas = 10, 
       lambdas <- createLambdaSequence(n, nLambdas)
     }
 
-    ## Modified parameters for CV
+    if (is.null(gam))
+    {
+      optimizeGams = TRUE
+      ## Modified parameters for CV
+      if (type == "dexp") {
+        params <- c(0.99, 0.82)
+      } else {
+        params <- 0.998
+      }
+    } else {
+      optimizeGams = FALSE
+      params <- gam
+    }
+
     paramsTilde <- modifyParams(params, type, "fwd")
 
     foldid <- rep(seq(1, k), n)[1:n]
@@ -84,10 +118,11 @@ cv <- function(dat, params, type = "ar1", optimizeParams = TRUE, nLambdas = 10, 
 
     ## store all intermediate values for model parameters
     nParams <- length(params)
-    if (optimizeParams) {
+    if (optimizeGams) {
         paramsOut <- list()
-        for (i in 1:nParams) paramsOut[[i]] <- matrix(0, nrow = nLambdas, ncol = k)
-    } else paramsOut <- NULL
+        for (i in 1:nParams) paramsOut[[i]] <-
+            matrix(0, nrow = nLambdas, ncol = k)
+    } else paramsOut <- gam
 
     for (fold in 1:k) {
         trainInd <- which(foldid != fold)
@@ -98,90 +133,92 @@ cv <- function(dat, params, type = "ar1", optimizeParams = TRUE, nLambdas = 10, 
         nn <- length(trainInd)
 
         for (lambdaInd in 1:nLambdas) {
-            if (optimizeParams) {
-                segments <- segment(trainDat, paramsTilde, lambdas[lambdaInd], type, calcFittedValues = FALSE)
-                paramsTilde <- optimParams(paramsTilde, trainDat, segments$changePts, lambdas[lambdaInd],
-                  type)
+            if (optimizeGams) {
+                segments <- estimateSpikes(trainDat, paramsTilde,
+                                           lambdas[lambdaInd], type,
+                                           calcFittedValues = FALSE)
+                paramsTilde <- optimParams(paramsTilde, trainDat,
+                                           segments$changePts,
+                                           lambdas[lambdaInd], type)
             }
-            segments <- segment(trainDat, paramsTilde, lambdas[lambdaInd], type)
+            segments <- estimateSpikes(trainDat, paramsTilde,
+                                       lambdas[lambdaInd], type)
             yhatTrain <- segments$fittedValues
-            yhatTest <- c(yhatTrain[1], 0.5 * (yhatTrain[1:(nn - 1)] + yhatTrain[2:nn]))
+            yhatTest <- c(yhatTrain[1], 0.5 * (yhatTrain[1:(nn - 1)] +
+                                                 yhatTrain[2:nn]))
             cvMSE[lambdaInd, fold] <- mean( (yhatTest - testDat) ^ 2)
 
-            if (optimizeParams) {
-                for (i in 1:nParams) paramsOut[[i]][lambdaInd, fold] <- as.numeric(paramsTilde[i])
+            if (optimizeGams) {
+                for (i in 1:nParams) paramsOut[[i]][lambdaInd, fold] <-
+                    as.numeric(paramsTilde[i])
             }
+            if (length(segments$spikes) < nn / 10000 &&
+                lambdaInd < nLambdas) {
+              warning("Cross validation stopped early as less than 1 spike per 10,000 timesteps estimated. Rerun with smaller lambdas.")
+              lambdas <- lambdas[1:lambdaInd]
+              break
+            }
+
         }
     }
 
-    cvErr <- rowMeans(cvMSE)
-    cvse <- apply(cvMSE, 1, sd) / sqrt(k)
+    cvErr <- rowMeans(cvMSE[1: lambdaInd, ])
+    cvse <- apply(cvMSE[1: lambdaInd, ], 1, sd) / sqrt(k)
 
     indexMin <- which.min(cvErr)
     lambdaMin <- lambdas[indexMin]
     lambda1SE <- max(lambdas[cvErr <= cvErr[indexMin] + cvse[indexMin]])
     index1SE <- which(lambdas == lambda1SE)
 
-    if (optimizeParams) {
+    if (optimizeGams) {
+        nLambdas <- length(lambdas)
         paramsOutTmp <- matrix(0, ncol = nParams, nrow = nLambdas)
-        for (i in 1:nParams) paramsOutTmp[, i] <- as.matrix(modifyParams(rowMeans(paramsOut[[i]]),
+        for (i in 1:nParams)
+          paramsOutTmp[, i] <- as.matrix(modifyParams(rowMeans(paramsOut[[i]][1: lambdaInd, ]),
             type, "bck"))
         paramsOut <- paramsOutTmp
         colnames(paramsOut) <- colnames(params)
     }
 
-    out <- list(cvError = cvErr, cvSE = cvse, lambdas = lambdas, params = paramsOut, lambdaMin = lambdaMin,
-                lambda1SE = lambda1SE, indexMin = indexMin, index1SE = index1SE)
-
+    out <- list(cvError = cvErr, cvSE = cvse, lambdas = lambdas,
+                optimalGam = paramsOut, lambdaMin = lambdaMin,
+                lambda1SE = lambda1SE, indexMin = indexMin,
+                index1SE = index1SE,
+                call = match.call(),
+                optimized = optimizeGams,
+                type = type)
+    class(out) <- "cvSpike"
     return(out)
 
 }
 
 yhatMSE <- function(params, y, changePts, type) {
-    if (type == "dexp") {
-        params <- data.frame(gammaC = params[1], gammaD = params[2])
-        return(mean( (y - computeFittedValues(y, changePts, params, type)) ^ 2))
-    }
-    return(mean( (y - computeFittedValues(y, changePts, params, type)) ^ 2))
+  return(mean( (y - computeFittedValues(y, changePts, params, type)) ^ 2))
 }
 
 createLambdaSequence <- function(n, nLambdas = 10) {
-    return(10^(seq(-1, 1.5, length.out = nLambdas)))
+  return(10^(seq(-1, 1, length.out = nLambdas)))
 }
-#
-# Optimize model parameters based on a fixed tuning parameter (and spike times).
-# @param params model parameters
-# @param dat flourscence
-# @param changePts locations of changepoints
-# @param penalty tuning parameter
-# @param type type of model
+
 optimParams <- function(params, dat, changePts, penalty, type) {
     if (type %in% c("ar1", "intercept")) {
         return(optimize(f = yhatMSE, interval = c(0.9, 1), y = dat, changePts = changePts, type = type)$minimum)
     }
 
     if (type == "dexp") {
-        params <- t(as.matrix(params))
+        params <- as.matrix(params)
         out <- constrOptim(theta = params, f = yhatMSE, ui = matrix(c(1, -1, 0, 0, 0, 0, 1, -1),
             nrow = 4), grad = NULL, ci = matrix(c(0, -1, 0, -1), nrow = 4), y = dat, changePts = changePts,
             type = type)$par
-        return(data.frame(gammaC = out[1], gammaD = out[2]))
+        return(out)
     }
 }
 
 modifyParams <- function(params, type, direction) {
-    if (type %in% c("ar1", "intercept")) {
+    if (type %in% c("ar1", "intercept", "dexp")) {
         if (direction == "fwd")
             return(params^2)
         if (direction == "bck")
             return(sqrt(params))
     }
-    if (type == "dexp") {
-        if (direction == "fwd")
-            return(data.frame(params^2))
-        if (direction == "bck")
-            return(data.frame(sqrt(params)))
-    }
 }
-
-

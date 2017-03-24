@@ -4,15 +4,58 @@
 \name{LZeroSpikeInference}
 \alias{LZeroSpikeInference}
 \alias{LZeroSpikeInference-package}
-\title{LZeroSpikeInference: A package for computing spike train inference with the L0 penalty}
+\title{LZeroSpikeInference: LZeroSpikeInference: A package for estimating spike
+times from calcium imaging data using an L0 penalty}
 \description{
-The LZeroSpikeInference package provides functions for calculting the optimal solution and plotting results. A cross validation #' function is included to aide the user in determining appropriate choices of the tuning parameter and other model parameters.
+This package implements an algorithm for deconvolving calcium imaging data
+for a single neuron in order to estimate the times at which the neuron
+spikes.
+}
+\details{
+This package implements an algorithm for deconvolving calcium imaging data
+for a single neuron in order to estimate the times at which the neuron
+spikes. This algorithm solves the optimization problems
+
+\strong{AR(1)-model:}
+\deqn{\underset{c_1,\ldots,c_T}{\mathrm{minimize}}\left\{  \frac{1}{2} \sum_{t=1}^T \left( y_t - c_t \right)^2 + \lambda \sum_{t=2}^T 1_{\left(c_t \neq \gamma c_{t-1}  \right) }\right\},}
+for the global optimum, where $y_t$ is the observed fluorescence at the tth
+timepoint.
+
+\strong{AR(1) with intercept:}
+\deqn{\underset{c_1,\ldots,c_T,   \beta_{01}, \ldots, \beta_{0T}}{\mathrm{minimize}}\left\{\frac12\sum_{t = 1}^{T} (y_{t} - c_{t} - \beta_{0t})^{2} + \lambda \sum_{t = 2}^{T} 1_{\left(c_{t} \neq \gamma c_{t-1}, \beta_{0t} \neq \beta_{0,t-1}\right)}\right\},}
+where the indicator variable \eqn{1_{(A,B)}} equals 1 if the event \eqn{A \cup B} holds, and equals zero otherwise.
+
+\strong{Difference of Exponentials:}
+\deqn{\underset{c_1,\ldots,c_T,  d_{1},\ldots,d_{T}}{\mathrm{minimize}}\left\{ \frac12 \sum_{t=1}^{T}\left( y_{t} - (c_{t} - d_{t})\right)^{2} + \lambda \sum_{t =2}^{T} 1_{\left(c_{t}\neq \gamma_{c}c_{t-1}, d_{t} \neq \gamma_{d}d_{t-1}\right)}\right\}.}
+
+See Jewell and Witten, Exact Spike Train Inference Via L0 Optimization (2017)
 }
 \section{LZeroSpikeInference functions}{
 
-segment
-cv
-plotSegment
-plotCV
 }
 
+\examples{
+# To reproduce Figure 1 of Jewell and Witten, Exact Spike Train Inference
+# Via L0 Optimization (2017)
+
+sampleData <- simulateAR1(n = 500, gam = 0.998, poisMean = 0.009, sd = 0.15, seed = 8)
+fit <- estimateSpikes(sampleData$fl, gam = 0.998, lambda = 8, type = "ar1")
+plot(fit)
+
+}
+\seealso{
+\strong{Estimate spikes:}
+\code{\link{estimateSpikes}},
+\code{\link{print.estimatedSpikes}},
+\code{\link{plot.estimatedSpikes}}.
+
+\strong{Cross validation:}
+\code{\link{cv.estimateSpikes}},
+\code{\link{print.cvSpike}},
+\code{\link{plot.cvSpike}}.
+
+\strong{Simulation:}
+\code{\link{simulateAR1}},
+\code{\link{simulateDexp}},
+\code{\link{plot.simdata}}.
+}

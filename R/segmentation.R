@@ -1,5 +1,5 @@
 computeCost <- function(dat, optimalFits, ind, n, params) {
-    if (n == 1)
+  if (n == 1)
         return(0)
 
     ## Extract matrix from optimalFits object + AR(1) decay parameter
@@ -7,28 +7,31 @@ computeCost <- function(dat, optimalFits, ind, n, params) {
     if (optimalFits$type == "ar1") {
         ## Calculate sumGamma2 = \sum_{t=a}^b \gamma^(2(t-a)) and regression coefficient Ca =
         ## \sum_{t=a}^b y_t \gamma^{t-a} / sumGamma2
-        sumGamma2 <- (1 - params^(2 * n))/(1 - params^2)
-        Ca <- sufficientStats[ind, 3]/sumGamma2
+        sumGamma2 <- (1 - params ^ (2 * n)) / (1 - params^2)
+        Ca <- sufficientStats[ind, 3] / sumGamma2
 
         ## Calculate segment cost \sum_{t=a}^b y_t^2 / 2 - Ca \sum_{t=a}^b y_t \gamma^{t-a} + Ca^2 *
         ## sumGamma2
-        segmentCost <- sufficientStats[ind, 2] - Ca * sufficientStats[ind, 3] + (Ca^2) * (sumGamma2/2)
+        segmentCost <- sufficientStats[ind, 2] - Ca * sufficientStats[ind, 3] +
+          (Ca ^ 2) * (sumGamma2 / 2)
     }
 
     if (optimalFits$type == "dexp") {
-        sumGammaC2 <- (1 - params$gammaC^(2 * n))/(1 - params$gammaC^2)
-        sumGammaD2 <- (1 - params$gammaD^(2 * n))/(1 - params$gammaD^2)
-        sumGammaCD <- (1 - (params$gammaD * params$gammaC)^n)/(1 - (params$gammaD * params$gammaC))
+        sumGammaC2 <- (1 - params[1] ^ (2 * n))/(1 - params[1] ^ 2)
+        sumGammaD2 <- (1 - params[2] ^ (2 * n))/(1 - params[2] ^ 2)
+        sumGammaCD <- (1 - (params[2] * params[1]) ^ n) /
+          (1 - (params[2] * params[1]))
 
-        rescalingFactor <- (sumGammaC2 * sumGammaD2 - sumGammaCD^2)
+        rescalingFactor <- (sumGammaC2 * sumGammaD2 - sumGammaCD ^ 2)
 
-        Ca <- (1/rescalingFactor) * (sumGammaD2 * sufficientStats[ind, 3] - sumGammaCD * sufficientStats[ind,
-            4])
-        Da <- (1/rescalingFactor) * (-sumGammaC2 * sufficientStats[ind, 4] + sumGammaCD * sufficientStats[ind,
-            3])
+        Ca <- (1/rescalingFactor) * (sumGammaD2 * sufficientStats[ind, 3] -
+                                       sumGammaCD * sufficientStats[ind,4])
+        Da <- (1/rescalingFactor) * (-sumGammaC2 * sufficientStats[ind, 4] +
+                                       sumGammaCD * sufficientStats[ind, 3])
 
-        segmentCost <- sufficientStats[ind, 2] - Ca * sufficientStats[ind, 3] + Da * sufficientStats[ind,
-            4] + (Ca^2) * (sumGammaC2/2) + (Da^2) * (sumGammaD2/2) - (Ca * Da) * sumGammaCD
+        segmentCost <- sufficientStats[ind, 2] - Ca * sufficientStats[ind, 3] +
+          Da * sufficientStats[ind, 4] + (Ca ^ 2) * (sumGammaC2 / 2) +
+          (Da ^ 2) * (sumGammaD2 / 2) - (Ca * Da) * sumGammaCD
     }
 
     if (optimalFits$type == "intercept") {
@@ -80,9 +83,9 @@ updateCostTable <- function(optimalFits, newDatPt, t, params) {
         }
 
         sufficientStats[, 2] <- sufficientStats[, 2] + 0.5 * (newDatPt^2)
-        sufficientStats[, 3] <- sufficientStats[, 3] + newDatPt * params$gammaC^(t - (sufficientStats[,
+        sufficientStats[, 3] <- sufficientStats[, 3] + newDatPt * params[1]^(t - (sufficientStats[,
             1] + 1))
-        sufficientStats[, 4] <- sufficientStats[, 4] + newDatPt * params$gammaD^(t - (sufficientStats[,
+        sufficientStats[, 4] <- sufficientStats[, 4] + newDatPt * params[2]^(t - (sufficientStats[,
             1] + 1))
     }
 
@@ -177,8 +180,8 @@ computeFittedValues <- function(dat, changePts, params, type) {
         X <- matrix(0, nrow = n, ncol = 2 * nSegments)
         ind <- c(1, 2)
         for (k in 1:nSegments) {
-            X[(changePts[k] + 1):changePts[k + 1], ind] <- cbind(params$gammaC^(0:(changePts[k +
-                1] - (changePts[k] + 1))), -params$gammaD^(0:(changePts[k + 1] - (changePts[k] +
+            X[(changePts[k] + 1):changePts[k + 1], ind] <- cbind(params[1]^(0:(changePts[k +
+                1] - (changePts[k] + 1))), -params[2]^(0:(changePts[k + 1] - (changePts[k] +
                 1))))
             ind <- c(ind[2] + 1, ind[2] + 2)
         }
@@ -193,59 +196,121 @@ computeFittedValues <- function(dat, changePts, params, type) {
                 1))), rep(1, changePts[k + 1] - changePts[k]))
             ind <- c(ind[2] + 1, ind[2] + 2)
         }
-        return(lm(dat ~ X - 1)$fitted.values)
+
+        fit <- lm(dat ~ X - 1)
+        # out <- fit$fitted.values - (rep(fit$coefficients[seq(2, (2 * nSegments), by = 2)], times = diff(changePts)))
+        return(fit$fitted.values)
     }
 
 }
 
-#' Segments based on type of model and penalty
-#' @param dat noisy flourscence data
-#' @param params model parameters. For the AR(1) and AR(1) intercept models this is the scalar decay parameter; this is a
-#' dataframe with two parameters gammaC and gammaD for the difference of exponentials model. That is,
-#'  \code{params <- data.frame(gammaC = 0.98, gammaD = 0.818)}, for the difference of exponentials model.
-#' @param penalty tuning parameter lambda
+#' Estimate spike train, underlying calcium concentration, and changepoints based on fluorescence
+#' trace.
+#'
+#' @param dat fluorescence data
+#' @param gam a scalar value for the AR(1)/AR(1) + intercept decay parameter or a vector (gammaC, gammaD) for the dexp model. If no value is provided an optimal value is selected for each tuning parameter
+#' @param lambda tuning parameter lambda
 #' @param type type of model, must be one of AR(1) 'ar1', AR(1) + intercept 'intercept', or difference of exponentials 'dexp'
-#' @param calcFittedValues  TRUE to calculate fitted values.
+#' @param calcFittedValues TRUE to calculate fitted values.
 #'
 #' @return Returns a list with elements:
 #' @return \code{changePts} the set of changepoints
 #' @return \code{spikes} the set of spikes
 #' @return \code{fittedValues} estimated calcium concentration
-#' @return \code{dat} the data that was used to fit the model
+#'
+#' @details
+#'
+#' This algorithm solves the optimization problems
+#'
+#' \strong{AR(1)-model:}
+#' \deqn{\underset{c_1,\ldots,c_T}{\mathrm{minimize}}\left\{  \frac{1}{2} \sum_{t=1}^T \left( y_t - c_t \right)^2 + \lambda \sum_{t=2}^T 1_{\left(c_t \neq \gamma c_{t-1}  \right) }\right\},}
+#' for the global optimum, where $y_t$ is the observed fluorescence at the tth
+#' timepoint.
+#'
+#' \strong{AR(1) with intercept:}
+#'\deqn{\underset{c_1,\ldots,c_T,   \beta_{01}, \ldots, \beta_{0T}}{\mathrm{minimize}}\left\{\frac12\sum_{t = 1}^{T} (y_{t} - c_{t} - \beta_{0t})^{2} + \lambda \sum_{t = 2}^{T} 1_{\left(c_{t} \neq \gamma c_{t-1}, \beta_{0t} \neq \beta_{0,t-1}\right)}\right\},}
+#' where the indicator variable \eqn{1_{(A,B)}} equals 1 if the event \eqn{A \cup B} holds, and equals zero otherwise.
+#'
+#' \strong{Difference of Exponentials:}
+#'\deqn{\underset{c_1,\ldots,c_T,  d_{1},\ldots,d_{T}}{\mathrm{minimize}}\left\{ \frac12 \sum_{t=1}^{T}\left( y_{t} - (c_{t} - d_{t})\right)^{2} + \lambda \sum_{t =2}^{T} 1_{\left(c_{t}\neq \gamma_{c}c_{t-1}, d_{t} \neq \gamma_{d}d_{t-1}\right)}\right\}.}
+#'
+#' See Jewell and Witten, Exact Spike Train Inference Via L0 Optimization (2017), section 2 and 5.
+#'
+#' Note that "changePts" and "spikes" differ by one index due to a quirk of the conventions used in the changepoint literature and the definition of a spike.
+#'
 #'
 #' @examples
 #'
-#' sampleData <- simulateAR1(n = 500, seed = 1, poisRate = 0.01, decay = 0.998, sd = 0.15)
+#' sim <- simulateAR1(n = 500, gam = 0.998, poisMean = 0.009, sd = 0.05, seed = 1)
 #'
 #' # AR(1) model
 #'
-#' fit <- segment(sampleData$fl, params = 0.998, penalty = 1, type = "ar1")
-#' plotSegmentation(fit, trueSpikes = sampleData$spikes)
+#' fit <- estimateSpikes(sim$fl, gam = 0.998, lambda = 1, type = "ar1")
+#' plot(fit)
 #'
 #' # AR(1) + intercept model
-#'
-#' fit <- segment(sampleData$fl, params = 0.998, penalty = 1, type = "intercept")
-#' plotSegmentation(fit, trueSpikes = sampleData$spikes)
+#' fit <- estimateSpikes(sim$fl, gam = 0.998, lambda = 1, type = "intercept")
+#' plot(fit)
 #'
 #' # Difference of exponentials model
+#' sim <- simulateDexp(n = 500, gams = c(0.998, 0.7), poisMean = 0.009, sd = 0.05, seed = 1)
+#' fit <- estimateSpikes(sim$fl, gam = c(0.998, 0.7), lambda = 5, type = "dexp")
+#' plot(fit)
 #'
-#' params <- data.frame(gammaC = 0.998, gammaD = 0.82)
-#' fit <- segment(sampleData$fl, params, penalty = 1, type = "dexp")
-#' plotSegmentation(fit, trueSpikes = sampleData$spikes)
+#' @seealso
+#' \strong{Estimate spikes:}
+#' \code{\link{estimateSpikes}},
+#' \code{\link{print.estimatedSpikes}},
+#' \code{\link{plot.estimatedSpikes}}.
+#'
+#' \strong{Cross validation:}
+#' \code{\link{cv.estimateSpikes}},
+#' \code{\link{print.cvSpike}},
+#' \code{\link{plot.cvSpike}}.
+#'
+#' \strong{Simulation:}
+#' \code{\link{simulateAR1}},
+#' \code{\link{simulateDexp}},
+#' \code{\link{plot.simdata}}.
+#'
 #'
 #' @export
-segment <- function(dat, params, penalty, type = c("ar1", "intercept", "dexp"), calcFittedValues = TRUE) {
-    if (type %in% c("ar1", "dexp", "intercept")) {
-        table <- computeSegmentation(dat, params, penalty, type)
-        changePts <- findChangePts(table[, 3])
-        spikes <- changePts[-1] + 1
-        if (calcFittedValues) {
-          fittedValues <- computeFittedValues(dat, changePts, params, type)
-        } else {
-          fittedValues <- NULL
-        }
-        return(list(changePts = changePts, spikes = spikes, fittedValues = fittedValues, dat = dat))
-    } else {
-        stop("Model not implemented. Type must be one of ar1, dexp, or intercept.")
-    }
+estimateSpikes <- function(dat, gam, lambda,
+                           type = "ar1", calcFittedValues = TRUE) {
+  checkValidType(type)
+  checkValidParameters(gam, type)
+  table <- computeSegmentation(dat, gam, lambda, type)
+  changePts <- findChangePts(table[, 3])
+  spikes <- changePts[-1] + 1
+  if (calcFittedValues) {
+    fittedValues <- computeFittedValues(dat, changePts, gam, type)
+  } else {
+    fittedValues <- NULL
+  }
+  out <- list(spikes = spikes, fittedValues = fittedValues,
+              dat = dat, type = type, changePts = changePts,
+              call = match.call(),
+              gam = gam,
+              lambda = lambda)
+  class(out) <- "estimatedSpikes"
+  return(out)
+}
+
+checkValidParameters <- function(params, type)
+{
+  if (type %in% c("ar1", "intercept")) {
+    if(params >= 1 || params <= 0)
+      stop("Decay parameter must satisfy 0 < gamma < 1")
+  }else if (type == "dexp") {
+    if(params[1] >= 1 || params[1] <= 0)
+      stop("Parameter must satisfy 0 < gammaC < 1")
+    if(params[2] >= 1 || params[2] <= 0)
+      stop("Parameter must satisfy 0 < gammaD < 1")
+  }
+
+}
+
+checkValidType <- function(type) {
+  if (!(type %in% c("ar1", "dexp", "intercept")))
+    stop("Model not implemented. Type must be one of ar1, dexp, or intercept.")
 }
