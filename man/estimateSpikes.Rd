@@ -10,7 +10,7 @@ estimateSpikes(dat, gam, lambda, type = "ar1", calcFittedValues = TRUE)
 \arguments{
 \item{dat}{fluorescence data}
 
-\item{gam}{a scalar value for the AR(1)/AR(1) + intercept decay parameter or a vector (gammaC, gammaD) for the dexp model. If no value is provided an optimal value is selected for each tuning parameter}
+\item{gam}{a scalar value for the AR(1)/AR(1) + intercept decay parameter or a vector (gammaC, gammaD) for the dexp model.}
 
 \item{lambda}{tuning parameter lambda}
 
@@ -35,16 +35,16 @@ trace.
 This algorithm solves the optimization problems
 
 \strong{AR(1)-model:}
-\deqn{\underset{c_1,\ldots,c_T}{\mathrm{minimize}}\left\{  \frac{1}{2} \sum_{t=1}^T \left( y_t - c_t \right)^2 + \lambda \sum_{t=2}^T 1_{\left(c_t \neq \gamma c_{t-1}  \right) }\right\},}
+minimize_{c1,...,cT} 0.5 sum_{t=1}^T ( y_t - c_t )^2 + lambda sum_{t=2}^T 1_{c_t neq gamma c_{t-1} }
 for the global optimum, where $y_t$ is the observed fluorescence at the tth
 timepoint.
 
 \strong{AR(1) with intercept:}
-\deqn{\underset{c_1,\ldots,c_T,   \beta_{01}, \ldots, \beta_{0T}}{\mathrm{minimize}}\left\{\frac12\sum_{t = 1}^{T} (y_{t} - c_{t} - \beta_{0t})^{2} + \lambda \sum_{t = 2}^{T} 1_{\left(c_{t} \neq \gamma c_{t-1}, \beta_{0t} \neq \beta_{0,t-1}\right)}\right\},}
-where the indicator variable \eqn{1_{(A,B)}} equals 1 if the event \eqn{A \cup B} holds, and equals zero otherwise.
+minimize_{c1,...,cT,b1,...,bT} 0.5 sum_{t=1}^T (y_t - c_t - b_t)^2 + lambda sum_{t=2}^T 1_{c_t neq gamma c_{t-1}, b_t neq b_{t-1} }
+where the indicator variable 1_{(A,B)} equals 1 if the event A cup B holds, and equals zero otherwise.
 
 \strong{Difference of Exponentials:}
-\deqn{\underset{c_1,\ldots,c_T,  d_{1},\ldots,d_{T}}{\mathrm{minimize}}\left\{ \frac12 \sum_{t=1}^{T}\left( y_{t} - (c_{t} - d_{t})\right)^{2} + \lambda \sum_{t =2}^{T} 1_{\left(c_{t}\neq \gamma_{c}c_{t-1}, d_{t} \neq \gamma_{d}d_{t-1}\right)}\right\}.}
+minimize_{c1,...,cT,d1,...,dT} 0.5 sum_{t=1}^{T} ( y_t - (c_t - d_t) )^2 + lambda sum_{t =2}^{T} 1_{ c_t neq gamma _c c_{t-1}, d_t neq gamma_d d_{t-1} }.
 
 See Jewell and Witten, Exact Spike Train Inference Via L0 Optimization (2017), section 2 and 5.
 
@@ -53,20 +53,25 @@ Note that "changePts" and "spikes" differ by one index due to a quirk of the con
 \examples{
 
 sim <- simulateAR1(n = 500, gam = 0.998, poisMean = 0.009, sd = 0.05, seed = 1)
+plot(sim)
 
 # AR(1) model
 
 fit <- estimateSpikes(sim$fl, gam = 0.998, lambda = 1, type = "ar1")
 plot(fit)
+print(fit)
 
 # AR(1) + intercept model
 fit <- estimateSpikes(sim$fl, gam = 0.998, lambda = 1, type = "intercept")
 plot(fit)
+print(fit)
 
 # Difference of exponentials model
 sim <- simulateDexp(n = 500, gams = c(0.998, 0.7), poisMean = 0.009, sd = 0.05, seed = 1)
+plot(sim)
 fit <- estimateSpikes(sim$fl, gam = c(0.998, 0.7), lambda = 5, type = "dexp")
 plot(fit)
+print(fit)
 
 }
 \seealso{
