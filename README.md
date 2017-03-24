@@ -23,7 +23,7 @@ Install
 If ``devtools`` is installed type 
 
 ```r
-devtools::install_github(repo = "LZeroSpikeInference", username = "jewellsean")
+devtools::install_github("jewellsean/LZeroSpikeInference")
 ```
 
 Usage
