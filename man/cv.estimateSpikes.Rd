@@ -10,9 +10,9 @@ cv.estimateSpikes(dat, type = "ar1", gam = NULL, lambdas = NULL,
 \arguments{
 \item{dat}{fluorescence trace (a vector)}
 
-\item{type}{type of model, must be one of AR(1) 'ar1', AR(1) with intercept 'intercept', or difference of exponentials 'dexp'}
+\item{type}{type of model, must be one of AR(1) 'ar1', or AR(1) with intercept 'intercept'}
 
-\item{gam}{a scalar value for the AR(1)/AR(1) + intercept decay parameter or a vector (gammaC, gammaD) for the dexp model. If no value is provided an optimal value is selected for each tuning parameter}
+\item{gam}{a scalar value for the AR(1)/AR(1) + intercept decay parameter}
 
 \item{lambdas}{vector of tuning parameters to use in cross-validation}
 
@@ -53,8 +53,6 @@ timepoint.
 minimize_{c1,...,cT,b1,...,bT} 0.5 sum_{t=1}^T (y_t - c_t - b_t)^2 + lambda sum_{t=2}^T 1_{c_t neq gamma c_{t-1}, b_t neq b_{t-1} }
 where the indicator variable 1_{(A,B)} equals 1 if the event A cup B holds, and equals zero otherwise.
 
-\strong{Difference of Exponentials:}
-minimize_{c1,...,cT,d1,...,dT} 0.5 sum_{t=1}^{T} ( y_t - (c_t - d_t) )^2 + lambda sum_{t =2}^{T} 1_{ c_t neq gamma _c c_{t-1}, d_t neq gamma_d d_{t-1} }
 on a training set using a candidate value for \eqn{\gamma}. Given the resulting set of changepoints, we solve a constrained optimization problem for \eqn{\gamma}. We then refit the optimization problem with the optimized value of \eqn{\gamma},
 and then evaluate the mean squared error (MSE) on a hold-out set. Note that in the final output of the algorithm,
 we take the square root of the optimal value of \eqn{\gamma} in order to address the fact that the cross-validation
@@ -89,15 +87,6 @@ fit <- estimateSpikes(sim$fl, gam = outAR1Intercept$optimalGam[outAR1Intercept$i
 lambda = outAR1Intercept$lambda1SE, type = "intercept")
 plot(fit)
 print(fit)
-
-# Difference of exponentials model
-sim <- simulateDexp(n = 500, gams = c(0.998, 0.7), poisMean = 0.009, sd = 0.05, seed = 1)
-plot(sim)
-outCVDexp <- cv.estimateSpikes(sim$fl, type = "dexp", gam = c(0.998, 0.7))
-plot(outCVDexp)
-fit <- estimateSpikes(sim$fl, gam = c(0.998, 0.7), lambda = outCVDexp$lambda1SE, type = "dexp")
-plot(fit)
-print(fit)
 }
 \seealso{
 \strong{Estimate spikes:}
@@ -112,6 +101,5 @@ print(fit)
 
 \strong{Simulation:}
 \code{\link{simulateAR1}},
-\code{\link{simulateDexp}},
 \code{\link{plot.simdata}}.
 }

@@ -10,11 +10,11 @@ estimateSpikes(dat, gam, lambda, type = "ar1", calcFittedValues = TRUE)
 \arguments{
 \item{dat}{fluorescence data}
 
-\item{gam}{a scalar value for the AR(1)/AR(1) + intercept decay parameter or a vector (gammaC, gammaD) for the dexp model.}
+\item{gam}{a scalar value for the AR(1)/AR(1) + intercept decay parameter.}
 
 \item{lambda}{tuning parameter lambda}
 
-\item{type}{type of model, must be one of AR(1) 'ar1', AR(1) + intercept 'intercept', or difference of exponentials 'dexp'}
+\item{type}{type of model, must be one of AR(1) 'ar1', AR(1) + intercept 'intercept'.}
 
 \item{calcFittedValues}{TRUE to calculate fitted values.}
 }
@@ -43,9 +43,6 @@ timepoint.
 minimize_{c1,...,cT,b1,...,bT} 0.5 sum_{t=1}^T (y_t - c_t - b_t)^2 + lambda sum_{t=2}^T 1_{c_t neq gamma c_{t-1}, b_t neq b_{t-1} }
 where the indicator variable 1_{(A,B)} equals 1 if the event A cup B holds, and equals zero otherwise.
 
-\strong{Difference of Exponentials:}
-minimize_{c1,...,cT,d1,...,dT} 0.5 sum_{t=1}^{T} ( y_t - (c_t - d_t) )^2 + lambda sum_{t =2}^{T} 1_{ c_t neq gamma _c c_{t-1}, d_t neq gamma_d d_{t-1} }.
-
 See Jewell and Witten, Exact Spike Train Inference Via L0 Optimization (2017), section 2 and 5.
 
 Note that "changePts" and "spikes" differ by one index due to a quirk of the conventions used in the changepoint literature and the definition of a spike.
@@ -66,13 +63,6 @@ fit <- estimateSpikes(sim$fl, gam = 0.998, lambda = 1, type = "intercept")
 plot(fit)
 print(fit)
 
-# Difference of exponentials model
-sim <- simulateDexp(n = 500, gams = c(0.998, 0.7), poisMean = 0.009, sd = 0.05, seed = 1)
-plot(sim)
-fit <- estimateSpikes(sim$fl, gam = c(0.998, 0.7), lambda = 5, type = "dexp")
-plot(fit)
-print(fit)
-
 }
 \seealso{
 \strong{Estimate spikes:}
@@ -87,6 +77,5 @@ print(fit)
 
 \strong{Simulation:}
 \code{\link{simulateAR1}},
-\code{\link{simulateDexp}},
 \code{\link{plot.simdata}}.
 }

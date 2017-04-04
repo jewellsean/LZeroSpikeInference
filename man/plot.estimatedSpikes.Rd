@@ -27,6 +27,5 @@ Plot the solution to an L0 segmentation problem
 
 \strong{Simulation:}
 \code{\link{simulateAR1}},
-\code{\link{simulateDexp}},
 \code{\link{plot.simdata}}.
 }

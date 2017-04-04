@@ -24,12 +24,12 @@ c2 <- fit$fitted.values
 
 test_that("correct fitted values for intercept", {expect_equal(c1, c2)})
 
-# DEXP ------------------
-params <- c(gam, gam2)
-c1 <- computeFittedValues(y, c(0), params, "dexp")
-
-X <- cbind(gam ^ (0:(n-1)), -gam2 ^ (0:(n-1)))
-fit <- lm(y ~ X - 1)
-c2 <- fit$fitted.values
-
-test_that("correct fitted values for dexp", {expect_equal(c1, c2)})
+# # DEXP ------------------
+# params <- c(gam, gam2)
+# c1 <- computeFittedValues(y, c(0), params, "dexp")
+#
+# X <- cbind(gam ^ (0:(n-1)), -gam2 ^ (0:(n-1)))
+# fit <- lm(y ~ X - 1)
+# c2 <- fit$fitted.values
+#
+# test_that("correct fitted values for dexp", {expect_equal(c1, c2)})

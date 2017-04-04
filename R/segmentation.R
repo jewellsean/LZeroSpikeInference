@@ -9,29 +9,10 @@ computeCost <- function(dat, optimalFits, ind, n, params) {
         ## \sum_{t=a}^b y_t \gamma^{t-a} / sumGamma2
         sumGamma2 <- (1 - params ^ (2 * n)) / (1 - params^2)
         Ca <- sufficientStats[ind, 3] / sumGamma2
-
         ## Calculate segment cost \sum_{t=a}^b y_t^2 / 2 - Ca \sum_{t=a}^b y_t \gamma^{t-a} + Ca^2 *
         ## sumGamma2
         segmentCost <- sufficientStats[ind, 2] - Ca * sufficientStats[ind, 3] +
           (Ca ^ 2) * (sumGamma2 / 2)
-    }
-
-    if (optimalFits$type == "dexp") {
-        sumGammaC2 <- (1 - params[1] ^ (2 * n))/(1 - params[1] ^ 2)
-        sumGammaD2 <- (1 - params[2] ^ (2 * n))/(1 - params[2] ^ 2)
-        sumGammaCD <- (1 - (params[2] * params[1]) ^ n) /
-          (1 - (params[2] * params[1]))
-
-        rescalingFactor <- (sumGammaC2 * sumGammaD2 - sumGammaCD ^ 2)
-
-        Ca <- (1/rescalingFactor) * (sumGammaD2 * sufficientStats[ind, 3] -
-                                       sumGammaCD * sufficientStats[ind,4])
-        Da <- (1/rescalingFactor) * (-sumGammaC2 * sufficientStats[ind, 4] +
-                                       sumGammaCD * sufficientStats[ind, 3])
-
-        segmentCost <- sufficientStats[ind, 2] - Ca * sufficientStats[ind, 3] +
-          Da * sufficientStats[ind, 4] + (Ca ^ 2) * (sumGammaC2 / 2) +
-          (Da ^ 2) * (sumGammaD2 / 2) - (Ca * Da) * sumGammaCD
     }
 
     if (optimalFits$type == "intercept") {
@@ -70,22 +51,6 @@ updateCostTable <- function(optimalFits, newDatPt, t, params) {
 
         sufficientStats[, 2] <- sufficientStats[, 2] + 0.5 * (newDatPt^2)
         sufficientStats[, 3] <- sufficientStats[, 3] + newDatPt * params^(t - (sufficientStats[,
-            1] + 1))
-    }
-    if (optimalFits$type == "dexp") {
-        ## Sufficient statistics to store in a matrix with columns Inital point a \sum_{t=a}^b (y_t ^ 2)
-        ## /2 \sum_{t=a}^b y_t \gamma_C^{t-a} \sum_{t=a}^b y_t \gamma_D^{t-a}
-
-        if (is.null(sufficientStats)) {
-            optimalFits$activeRowSufficientStats <- matrix(c(0, (newDatPt^2)/2, newDatPt, newDatPt),
-                nrow = 1, ncol = 4)
-            return(optimalFits)
-        }
-
-        sufficientStats[, 2] <- sufficientStats[, 2] + 0.5 * (newDatPt^2)
-        sufficientStats[, 3] <- sufficientStats[, 3] + newDatPt * params[1]^(t - (sufficientStats[,
-            1] + 1))
-        sufficientStats[, 4] <- sufficientStats[, 4] + newDatPt * params[2]^(t - (sufficientStats[,
             1] + 1))
     }
 
@@ -174,18 +139,9 @@ computeFittedValues <- function(dat, changePts, params, type) {
             X[(changePts[k] + 1):changePts[k + 1], k] <- params^(0:(changePts[k + 1] - (changePts[k] +
                 1)))
         }
-        return(lm(dat ~ X - 1)$fitted.values)
-    }
-    if (type == "dexp") {
-        X <- matrix(0, nrow = n, ncol = 2 * nSegments)
-        ind <- c(1, 2)
-        for (k in 1:nSegments) {
-            X[(changePts[k] + 1):changePts[k + 1], ind] <- cbind(params[1]^(0:(changePts[k +
-                1] - (changePts[k] + 1))), -params[2]^(0:(changePts[k + 1] - (changePts[k] +
-                1))))
-            ind <- c(ind[2] + 1, ind[2] + 2)
-        }
-        return(lm(dat ~ X - 1)$fitted.values)
+        fit <- lm(dat ~ X - 1)
+        if (sum(fit$coefficients < 0) > 0) warning("Check model fit carefully. In some segments calcium concentration may not 'decay' as expected. Most observed datapoints should be positive.")
+        return(fit$fitted.values)
     }
 
     if (type == "intercept") {
@@ -208,9 +164,9 @@ computeFittedValues <- function(dat, changePts, params, type) {
 #' trace.
 #'
 #' @param dat fluorescence data
-#' @param gam a scalar value for the AR(1)/AR(1) + intercept decay parameter or a vector (gammaC, gammaD) for the dexp model.
+#' @param gam a scalar value for the AR(1)/AR(1) + intercept decay parameter.
 #' @param lambda tuning parameter lambda
-#' @param type type of model, must be one of AR(1) 'ar1', AR(1) + intercept 'intercept', or difference of exponentials 'dexp'
+#' @param type type of model, must be one of AR(1) 'ar1', AR(1) + intercept 'intercept'.
 #' @param calcFittedValues TRUE to calculate fitted values.
 #'
 #' @return Returns a list with elements:
@@ -230,9 +186,6 @@ computeFittedValues <- function(dat, changePts, params, type) {
 #' \strong{AR(1) with intercept:}
 #' minimize_{c1,...,cT,b1,...,bT} 0.5 sum_{t=1}^T (y_t - c_t - b_t)^2 + lambda sum_{t=2}^T 1_{c_t neq gamma c_{t-1}, b_t neq b_{t-1} }
 #' where the indicator variable 1_{(A,B)} equals 1 if the event A cup B holds, and equals zero otherwise.
-#'
-#' \strong{Difference of Exponentials:}
-#' minimize_{c1,...,cT,d1,...,dT} 0.5 sum_{t=1}^{T} ( y_t - (c_t - d_t) )^2 + lambda sum_{t =2}^{T} 1_{ c_t neq gamma _c c_{t-1}, d_t neq gamma_d d_{t-1} }.
 #'
 #' See Jewell and Witten, Exact Spike Train Inference Via L0 Optimization (2017), section 2 and 5.
 #'
@@ -255,13 +208,6 @@ computeFittedValues <- function(dat, changePts, params, type) {
 #' plot(fit)
 #' print(fit)
 #'
-#' # Difference of exponentials model
-#' sim <- simulateDexp(n = 500, gams = c(0.998, 0.7), poisMean = 0.009, sd = 0.05, seed = 1)
-#' plot(sim)
-#' fit <- estimateSpikes(sim$fl, gam = c(0.998, 0.7), lambda = 5, type = "dexp")
-#' plot(fit)
-#' print(fit)
-#'
 #' @seealso
 #' \strong{Estimate spikes:}
 #' \code{\link{estimateSpikes}},
@@ -275,7 +221,6 @@ computeFittedValues <- function(dat, changePts, params, type) {
 #'
 #' \strong{Simulation:}
 #' \code{\link{simulateAR1}},
-#' \code{\link{simulateDexp}},
 #' \code{\link{plot.simdata}}.
 #'
 #'
@@ -307,20 +252,14 @@ checkValidParameters <- function(params, type)
   if (type %in% c("ar1", "intercept")) {
     if(params >= 1 || params <= 0)
       stop("Decay parameter must satisfy 0 < gamma < 1")
-  }else if (type == "dexp") {
-    if(params[1] >= 1 || params[1] <= 0)
-      stop("Parameter must satisfy 0 < gammaC < 1")
-    if(params[2] >= 1 || params[2] <= 0)
-      stop("Parameter must satisfy 0 < gammaD < 1")
   }
-
 }
 
 checkValidType <- function(type) {
-  if (!(type %in% c("ar1", "dexp", "intercept")))
-    stop("Model not implemented. Type must be one of ar1, dexp, or intercept.")
+  if (!(type %in% c("ar1", "intercept")))
+    stop("Model not implemented. Type must be one of ar1 or intercept.")
 }
 
 checkData <- function(dat) {
-  if(mean(dat < 0) > 0.1) stop("Most observed data points should be positive.")
+  if(mean(dat < 0) > 0.5) warning("Most observed data points should be positive.")
 }

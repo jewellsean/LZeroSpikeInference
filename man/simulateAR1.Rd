@@ -49,6 +49,5 @@ plot(sim)
 
 \strong{Simulation:}
 \code{\link{simulateAR1}},
-\code{\link{simulateDexp}},
 \code{\link{plot.simdata}}.
 }

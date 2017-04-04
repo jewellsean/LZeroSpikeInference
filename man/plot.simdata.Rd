@@ -22,9 +22,6 @@ Plot simulated data
 sim <- simulateAR1(n = 500, gam = 0.998, poisMean = 0.009, sd = 0.05, seed = 1)
 plot(sim)
 
-sim <- simulateDexp(n = 500, gams = c(0.998, 0.7), poisMean = 0.009, sd = 0.05, seed = 1)
-plot(sim)
-
 }
 \seealso{
 \strong{Estimate spikes:}
@@ -39,6 +36,5 @@ plot(sim)
 
 \strong{Simulation:}
 \code{\link{simulateAR1}},
-\code{\link{simulateDexp}},
 \code{\link{plot.simdata}}.
 }

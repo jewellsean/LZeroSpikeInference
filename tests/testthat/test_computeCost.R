@@ -28,14 +28,14 @@ c2 <- sum(fit$residuals ^ 2) / 2
 
 test_that("correct rss for intercept", {expect_equal(c1, c2)})
 
-# DEXP ------------------
-mtx <- matrix(c(1, sum((y^2)/2), sum(y * gam ^(0:(n-1))), sum(y * gam2 ^(0:(n-1)))), nrow = 1)
-optimalFits <- list(type = "dexp", activeRowSufficientStats = mtx)
-params <- c(gam, gam2) #data.frame(gammaC = gam, gammaD = gam2)
-c1 <- computeCost(y, optimalFits, 1, n, params)
-
-X <- cbind(gam ^(0:(n-1)), -gam2 ^(0:(n-1)))
-fit <- lm(y ~ X - 1)
-c2 <- sum(fit$residuals ^ 2) / 2
-
-test_that("correct rss for dexp", {expect_equal(c1, c2)})
+# # DEXP ------------------
+# mtx <- matrix(c(1, sum((y^2)/2), sum(y * gam ^(0:(n-1))), sum(y * gam2 ^(0:(n-1)))), nrow = 1)
+# optimalFits <- list(type = "dexp", activeRowSufficientStats = mtx)
+# params <- c(gam, gam2) #data.frame(gammaC = gam, gammaD = gam2)
+# c1 <- computeCost(y, optimalFits, 1, n, params)
+#
+# X <- cbind(gam ^(0:(n-1)), -gam2 ^(0:(n-1)))
+# fit <- lm(y ~ X - 1)
+# c2 <- sum(fit$residuals ^ 2) / 2
+#
+# test_that("correct rss for dexp", {expect_equal(c1, c2)})
