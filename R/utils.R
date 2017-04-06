@@ -19,12 +19,12 @@
 #'
 plot.estimatedSpikes <- function(lzeroFit, xlims = NULL) {
   ind <- 1:length(lzeroFit$dat)
-  rng <- range(lzeroFit$dat)
-  ylims <- c(floor(rng[1]), ceiling(rng[2]))
+  rng <- range(c(lzeroFit$dat, lzeroFit$fittedValues))
+  ylims <- rng #c(floor(rng[1]), ceiling(rng[2]))
   if (is.null(xlims)){
-    plot(ind, lzeroFit$dat, cex = 0.5, pch = 20, col = "darkgrey", ylab = "", ylim = ylims)
+    plot(ind, lzeroFit$dat, cex = 0.5, pch = 20, col = "darkgrey", ylab = "", ylim = ylims, xlab = "Index")
   } else {
-  plot(ind, lzeroFit$dat, cex = 0.5, pch = 20, col = "darkgrey", ylab = "", ylim = ylims, xlim = xlims)
+  plot(ind, lzeroFit$dat, cex = 0.5, pch = 20, col = "darkgrey", ylab = "", ylim = ylims, xlim = xlims, xlab = "Time")
   }
   lines(ind, lzeroFit$fittedValues, col = "blue", lwd = 2)
 
