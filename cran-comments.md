@@ -9,5 +9,5 @@
 ## Resubmission
 
 This is a resubmission. In this version I have 
-- Replaced html reference with added Jewell and Witten (2017) <arXiv:1703.08644>
+- Replaced html reference with Jewell and Witten (2017) <arXiv:1703.08644>
 
