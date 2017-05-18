@@ -27,10 +27,6 @@ where the indicator variable 1_{(A,B)} equals 1 if the event A cup B holds, and 
 
 See Jewell and Witten, Exact Spike Train Inference Via L0 Optimization (2017)
 }
-\section{LZeroSpikeInference functions}{
-
-}
-
 \examples{
 # To reproduce Figure 1 of Jewell and Witten, Exact Spike Train Inference
 # Via L0 Optimization (2017)

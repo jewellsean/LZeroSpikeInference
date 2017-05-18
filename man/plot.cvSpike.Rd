@@ -4,10 +4,12 @@
 \alias{plot.cvSpike}
 \title{Plot mean squared error vs. tuning parameter from the cross-validation output}
 \usage{
-\method{plot}{cvSpike}(cvOut)
+\method{plot}{cvSpike}(x, ...)
 }
 \arguments{
-\item{cvOut}{output from cross validation procedure}
+\item{x}{output from cross validation procedure}
+
+\item{...}{arguments to be passed to methods}
 }
 \description{
 Plot mean squared error vs. tuning parameter from the cross-validation output

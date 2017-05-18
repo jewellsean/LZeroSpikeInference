@@ -4,12 +4,14 @@
 \alias{plot.estimatedSpikes}
 \title{Plot the solution to an L0 segmentation problem}
 \usage{
-\method{plot}{estimatedSpikes}(lzeroFit, xlims = NULL)
+\method{plot}{estimatedSpikes}(x, xlims = NULL, ...)
 }
 \arguments{
-\item{lzeroFit}{output from running estimatedSpikes}
+\item{x}{output from running estimatedSpikes}
 
 \item{xlims}{optional parameter to specify the x-axis limits}
+
+\item{...}{arguments to be passed to methods}
 }
 \description{
 Plot the solution to an L0 segmentation problem

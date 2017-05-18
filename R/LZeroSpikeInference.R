@@ -5,7 +5,6 @@
 #' for a single neuron in order to estimate the times at which the neuron
 #' spikes.
 #'
-#' @section LZeroSpikeInference functions:
 #'
 #' @seealso
 #' \strong{Estimate spikes:}

@@ -4,10 +4,12 @@
 \alias{print.estimatedSpikes}
 \title{Print estimated spikes}
 \usage{
-\method{print}{estimatedSpikes}(lzeroFit)
+\method{print}{estimatedSpikes}(x, ...)
 }
 \arguments{
-\item{lzeroFit}{estimated spikes}
+\item{x}{estimated spikes}
+
+\item{...}{arguments to be passed to methods}
 }
 \description{
 Print estimated spikes

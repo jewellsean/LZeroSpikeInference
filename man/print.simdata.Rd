@@ -4,10 +4,12 @@
 \alias{print.simdata}
 \title{Print simulated data}
 \usage{
-\method{print}{simdata}(dat)
+\method{print}{simdata}(x, ...)
 }
 \arguments{
-\item{dat}{simulated data}
+\item{x}{simulated data}
+
+\item{...}{arguments to be passed to methods}
 }
 \description{
 Print simulated data

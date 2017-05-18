@@ -4,10 +4,12 @@
 \alias{print.cvSpike}
 \title{Print CV results}
 \usage{
-\method{print}{cvSpike}(cvOut)
+\method{print}{cvSpike}(x, ...)
 }
 \arguments{
-\item{cvOut}{output from CV}
+\item{x}{output from CV}
+
+\item{...}{arguments to be passed to methods}
 }
 \description{
 Print CV results

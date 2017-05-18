@@ -4,12 +4,14 @@
 \alias{plot.simdata}
 \title{Plot simulated data}
 \usage{
-\method{plot}{simdata}(dat, xlims = NULL)
+\method{plot}{simdata}(x, xlims = NULL, ...)
 }
 \arguments{
-\item{dat}{output data from simulateAR1 or simulateDexp}
+\item{x}{output data from simulateAR1}
 
 \item{xlims}{optional parameter to specify the x-axis limits}
+
+\item{...}{arguments to be passed to methods}
 }
 \value{
 Plot with simulated fluorescence (dark grey circles), calcium concentration (dark green line) and spikes (dark green tick marks on x-axis)
