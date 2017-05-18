@@ -1,4 +1,4 @@
-# LZeroSpikeInference: A package for estimating spike times from calcium imaging data using an L0 penalty
+# LZeroSpikeInference: A package for estimating spike times from calcium imaging data using an L0 penalty [![Build Status](https://travis-ci.com/jewellsean/LZeroSpikeInference.svg?token=oixVftbrq2TkrSApRKn2&branch=master)](https://travis-ci.com/jewellsean/LZeroSpikeInference)
 
 This package implements an algorithm for deconvolving calcium imaging data for a single neuron in order to estimate the times at which the neuron spikes.
 
