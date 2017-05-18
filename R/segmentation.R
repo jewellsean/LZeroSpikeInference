@@ -187,7 +187,7 @@ computeFittedValues <- function(dat, changePts, params, type) {
 #' minimize_{c1,...,cT,b1,...,bT} 0.5 sum_{t=1}^T (y_t - c_t - b_t)^2 + lambda sum_{t=2}^T 1_{c_t neq gamma c_{t-1}, b_t neq b_{t-1} }
 #' where the indicator variable 1_{(A,B)} equals 1 if the event A cup B holds, and equals zero otherwise.
 #'
-#' See Jewell and Witten (2017) (<https://arxiv.org/abs/1703.08644>), section 2 and 5.
+#' See Jewell and Witten (2017) <arXiv:1703.08644>, section 2 and 5.
 #'
 #' Note that "changePts" and "spikes" differ by one index due to a quirk of the conventions used in the changepoint literature and the definition of a spike.
 #'

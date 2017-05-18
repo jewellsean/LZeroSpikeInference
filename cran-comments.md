@@ -9,6 +9,5 @@
 ## Resubmission
 
 This is a resubmission. In this version I have 
-- Provided an html reference to citations in the DESCRIPTION; DOI is unavailable 
-since referenced work is currently unpublished. 
+- Replaced html reference with added Jewell and Witten (2017) <arXiv:1703.08644>
 

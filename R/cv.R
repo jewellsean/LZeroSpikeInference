@@ -21,8 +21,7 @@
 #' If there is a tuning parameter lambdaT in the path [lambdaMin, lambdaMax] that produces a fit with
 #' less than 1 spike per 10,000 timesteps the path is truncated to [lambdaMin, lambdaT] and a warning is produced.
 #'
-#' See Algorithm 3 of Jewell and Witten (2017)
-#' Exact Spike Train Inference Via L0 Optimization
+#' See Algorithm 3 of Jewell and Witten (2017) <arXiv:1703.08644>
 #' @seealso
 #' \strong{Estimate spikes:}
 #' \code{\link{estimateSpikes}},
