@@ -5,7 +5,10 @@
 
 ## R CMD check results
 * There were no ERRORs or WARNINGs
-* 1 NOTE (new submission)
 
-## Submission history
-This is the initial submission.
+## Resubmission
+
+This is a resubmission. In this version I have 
+- Provided an html reference to citations in the DESCRIPTION; DOI is unavailable 
+since referenced work is currently unpublished. 
+
