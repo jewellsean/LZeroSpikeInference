@@ -18,6 +18,7 @@
 #' \code{\link{simulateAR1}},
 #' \code{\link{plot.simdata}}.
 #' @export
+#' @import graphics
 #'
 plot.estimatedSpikes <- function(x, xlims = NULL, ...) {
   ind <- 1:length(x$dat)
