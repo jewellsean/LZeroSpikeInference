@@ -126,6 +126,7 @@ findChangePts <- function(vecChgPts) {
         changePts <- c(ind, changePts)
     }
     changePts <- changePts - 1
+
     return(changePts)
 }
 
@@ -242,7 +243,8 @@ estimateSpikes <- function(dat, gam, lambda,
               dat = dat, type = type, changePts = changePts,
               call = match.call(),
               gam = gam,
-              lambda = lambda)
+              lambda = lambda,
+              cost = table[(2:dim(table)[[1]]), 2])
   class(out) <- "estimatedSpikes"
   return(out)
 }

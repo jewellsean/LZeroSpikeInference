@@ -1,7 +1,7 @@
 Package: LZeroSpikeInference
 Type: Package
 Title: Exact Spike Train Inference via L0 Optimization
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: person("Sean", "Jewell", email = "swjewell@uw.edu",
                   role = c("aut", "cre"))
 Description: An implementation of algorithms described in Jewell and Witten (2017) <arXiv:1703.08644>. 
