@@ -80,7 +80,8 @@
 #' @export
 #'
 cv.estimateSpikes <- function(dat, type = "ar1", gam = NULL,
-                              lambdas = NULL, nLambdas = 10) {
+                              lambdas = NULL, nLambdas = 10,
+                              hardThresholding = TRUE) {
     k <- 2  ## number of folds
     n <- length(dat)
 
@@ -123,16 +124,24 @@ cv.estimateSpikes <- function(dat, type = "ar1", gam = NULL,
             if (optimizeGams) {
                 segments <- estimateSpikes(trainDat, paramsTilde,
                                            lambdas[lambdaInd], type,
-                                           calcFittedValues = FALSE)
+                                           calcFittedValues = FALSE,
+                                           hardThresholding)
                 paramsTilde <- optimParams(paramsTilde, trainDat,
                                            segments$changePts,
-                                           lambdas[lambdaInd], type)
+                                           lambdas[lambdaInd], type,
+                                           hardThresholding)
             }
             segments <- estimateSpikes(trainDat, paramsTilde,
-                                       lambdas[lambdaInd], type)
+                                       lambdas[lambdaInd], type,
+                                       hardThresholding)
             yhatTrain <- segments$fittedValues
-            yhatTest <- c(yhatTrain[1], 0.5 * (yhatTrain[1:(nn - 1)] +
-                                                 yhatTrain[2:nn]))
+            nnInd <- ceiling(nn)
+
+            yhatTest <- 0.5 * (yhatTrain[1:(nnInd - 1)] + yhatTrain[2:nnInd])
+            if (fold == 1) {
+              yhatTest <- c(yhatTrain[1], yhatTest, yhatTrain[nn])
+            }
+
             cvMSE[lambdaInd, fold] <- mean( (yhatTest - testDat) ^ 2)
 
             if (optimizeGams) {
@@ -179,17 +188,17 @@ cv.estimateSpikes <- function(dat, type = "ar1", gam = NULL,
 
 }
 
-yhatMSE <- function(params, y, changePts, type) {
-  return(mean( (y - computeFittedValues(y, changePts, params, type)) ^ 2))
+yhatMSE <- function(params, y, changePts, type, hardThresholding) {
+  return(mean( (y - computeFittedValues(y, changePts, params, type, hardThresholding)) ^ 2))
 }
 
 createLambdaSequence <- function(n, nLambdas = 10) {
   return(10^(seq(-1, 1, length.out = nLambdas)))
 }
 
-optimParams <- function(params, dat, changePts, penalty, type) {
+optimParams <- function(params, dat, changePts, penalty, type, hardThresholding) {
     if (type %in% c("ar1", "intercept")) {
-        return(optimize(f = yhatMSE, interval = c(0.9, 1), y = dat, changePts = changePts, type = type)$minimum)
+        return(optimize(f = yhatMSE, interval = c(0.9, 1), y = dat, changePts = changePts, type = type, hardThresholding)$minimum)
     }
 }
 
