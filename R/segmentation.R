@@ -1,6 +1,6 @@
 computeCost <- function(dat, optimalFits, ind, n, params) {
-  if (n == 1)
-        return(0)
+  # if (n == 1)
+  #       return(0)
 
     ## Extract matrix from optimalFits object + AR(1) decay parameter
     sufficientStats <- optimalFits$activeRowSufficientStats
@@ -8,7 +8,14 @@ computeCost <- function(dat, optimalFits, ind, n, params) {
         ## Calculate sumGamma2 = \sum_{t=a}^b \gamma^(2(t-a)) and regression coefficient Ca =
         ## \sum_{t=a}^b y_t \gamma^{t-a} / sumGamma2
         sumGamma2 <- (1 - params ^ (2 * n)) / (1 - params^2)
+
         Ca <- sufficientStats[ind, 3] / sumGamma2
+        if (optimalFits$hardThreshold == T) {
+          if (Ca < 0) {
+            Ca <- 0
+          }
+        }
+
         ## Calculate segment cost \sum_{t=a}^b y_t^2 / 2 - Ca \sum_{t=a}^b y_t \gamma^{t-a} + Ca^2 *
         ## sumGamma2
         segmentCost <- sufficientStats[ind, 2] - Ca * sufficientStats[ind, 3] +
@@ -87,13 +94,13 @@ addNewTimeOptimalFits <- function(optimalFits, indicesPtsKeep, t) {
     return(optimalFits)
 }
 
-computeSegmentation <- function(dat, params, penalty, type) {
+computeSegmentation <- function(dat, params, penalty, type, hardThreshold) {
     n <- length(dat)
     table <- matrix(0, nrow = n + 1, ncol = 3)  ## rows index 0...t, cols index: t, F(t), \tau'_t
     table[1, 2] <- -penalty
     R = c(0)  ## restricted set for mins
 
-    optimalFits <- list(type = type, activeRowSufficientStats = NULL)
+    optimalFits <- list(type = type, activeRowSufficientStats = NULL, hardThreshold = hardThreshold)
 
     for (t in 1:n) {
         nR <- length(R)
@@ -130,7 +137,7 @@ findChangePts <- function(vecChgPts) {
     return(changePts)
 }
 
-computeFittedValues <- function(dat, changePts, params, type) {
+computeFittedValues <- function(dat, changePts, params, type, hardThreshold) {
     n <- length(dat)
     nSegments <- length(changePts)
     changePts <- c(changePts, n)
@@ -141,8 +148,18 @@ computeFittedValues <- function(dat, changePts, params, type) {
                 1)))
         }
         fit <- lm(dat ~ X - 1)
-        if (sum(fit$coefficients < 0) > 0) warning("Check model fit carefully. In some segments calcium concentration may not 'decay' as expected. Most observed datapoints should be positive.")
-        return(fit$fitted.values)
+
+        if (hardThreshold == T) {
+          return(pmax(fit$fitted.values, 0))
+        } else {
+
+          if (sum(fit$coefficients < 0) > 0) {
+          warning("Check model fit carefully. In some segments calcium concentration may not 'decay' as expected. Most observed datapoints should be positive.")
+        }
+          return(fit$fitted.values)
+        }
+
+
     }
 
     if (type == "intercept") {
@@ -155,7 +172,6 @@ computeFittedValues <- function(dat, changePts, params, type) {
         }
 
         fit <- lm(dat ~ X - 1)
-        # out <- fit$fitted.values - (rep(fit$coefficients[seq(2, (2 * nSegments), by = 2)], times = diff(changePts)))
         return(fit$fitted.values)
     }
 
@@ -227,15 +243,15 @@ computeFittedValues <- function(dat, changePts, params, type) {
 #'
 #' @export
 estimateSpikes <- function(dat, gam, lambda,
-                           type = "ar1", calcFittedValues = TRUE) {
+                           type = "ar1", calcFittedValues = TRUE, hardThreshold = TRUE) {
   checkValidType(type)
   checkValidParameters(gam, type)
   checkData(dat)
-  table <- computeSegmentation(dat, gam, lambda, type)
+  table <- computeSegmentation(dat, gam, lambda, type, hardThreshold)
   changePts <- findChangePts(table[, 3])
   spikes <- changePts[-1] + 1
   if (calcFittedValues) {
-    fittedValues <- computeFittedValues(dat, changePts, gam, type)
+    fittedValues <- computeFittedValues(dat, changePts, gam, type, hardThreshold)
   } else {
     fittedValues <- NULL
   }
