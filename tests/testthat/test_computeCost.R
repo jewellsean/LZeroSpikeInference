@@ -6,7 +6,7 @@ n <- length(y)
 
 # AR1 -------------------
 mtx <- matrix(c(1, sum((y^2)/2), sum(y * gam ^(0:(n-1)))), nrow = 1)
-optimalFits <- list(type = "ar1", activeRowSufficientStats = mtx)
+optimalFits <- list(type = "ar1", activeRowSufficientStats = mtx, hardThreshold = FALSE)
 params <- gam
 c1 <- computeCost(y, optimalFits, 1, n, params)
 

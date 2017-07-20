@@ -1,6 +1,6 @@
 computeCost <- function(dat, optimalFits, ind, n, params) {
-  # if (n == 1)
-  #       return(0)
+  if (n == 1 && optimalFits$hardThreshold == FALSE)
+        return(0)
 
     ## Extract matrix from optimalFits object + AR(1) decay parameter
     sufficientStats <- optimalFits$activeRowSufficientStats
@@ -137,7 +137,7 @@ findChangePts <- function(vecChgPts) {
     return(changePts)
 }
 
-computeFittedValues <- function(dat, changePts, params, type, hardThreshold) {
+computeFittedValues <- function(dat, changePts, params, type, hardThreshold = FALSE) {
     n <- length(dat)
     nSegments <- length(changePts)
     changePts <- c(changePts, n)
@@ -185,6 +185,7 @@ computeFittedValues <- function(dat, changePts, params, type, hardThreshold) {
 #' @param lambda tuning parameter lambda
 #' @param type type of model, must be one of AR(1) 'ar1', AR(1) + intercept 'intercept'.
 #' @param calcFittedValues TRUE to calculate fitted values.
+#' @param hardThreshold boolean specifying whether the calcium concentration must be non-negative (in the AR-1 problem)
 #'
 #' @return Returns a list with elements:
 #' @return \code{changePts} the set of changepoints
@@ -243,7 +244,7 @@ computeFittedValues <- function(dat, changePts, params, type, hardThreshold) {
 #'
 #' @export
 estimateSpikes <- function(dat, gam, lambda,
-                           type = "ar1", calcFittedValues = TRUE, hardThreshold = TRUE) {
+                           type = "ar1", calcFittedValues = TRUE, hardThreshold = FALSE) {
   checkValidType(type)
   checkValidParameters(gam, type)
   checkData(dat)

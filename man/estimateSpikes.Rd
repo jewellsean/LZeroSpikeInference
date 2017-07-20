@@ -5,7 +5,8 @@
 \title{Estimate spike train, underlying calcium concentration, and changepoints based on fluorescence
 trace.}
 \usage{
-estimateSpikes(dat, gam, lambda, type = "ar1", calcFittedValues = TRUE)
+estimateSpikes(dat, gam, lambda, type = "ar1", calcFittedValues = TRUE,
+  hardThreshold = FALSE)
 }
 \arguments{
 \item{dat}{fluorescence data}
@@ -17,6 +18,8 @@ estimateSpikes(dat, gam, lambda, type = "ar1", calcFittedValues = TRUE)
 \item{type}{type of model, must be one of AR(1) 'ar1', AR(1) + intercept 'intercept'.}
 
 \item{calcFittedValues}{TRUE to calculate fitted values.}
+
+\item{hardThreshold}{boolean specifying whether the calcium concentration must be non-negative (in the AR-1 problem)}
 }
 \value{
 Returns a list with elements:

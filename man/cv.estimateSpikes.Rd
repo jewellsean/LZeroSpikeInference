@@ -5,7 +5,7 @@
 \title{Cross-validate and optimize model parameters}
 \usage{
 cv.estimateSpikes(dat, type = "ar1", gam = NULL, lambdas = NULL,
-  nLambdas = 10)
+  nLambdas = 10, hardThreshold = TRUE)
 }
 \arguments{
 \item{dat}{fluorescence trace (a vector)}
@@ -17,6 +17,8 @@ cv.estimateSpikes(dat, type = "ar1", gam = NULL, lambdas = NULL,
 \item{lambdas}{vector of tuning parameters to use in cross-validation}
 
 \item{nLambdas}{number of tuning parameters to estimate the model (grid of values is automatically produced)}
+
+\item{hardThreshold}{boolean specifying whether the calcium concentration must be non-negative (in the AR-1 problem)}
 }
 \value{
 A list of values corresponding to the 2-fold cross-validation:
