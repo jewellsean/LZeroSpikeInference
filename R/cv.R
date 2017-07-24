@@ -86,6 +86,8 @@ cv.estimateSpikes <- function(dat, type = "ar1", gam = NULL,
     k <- 2  ## number of folds
     n <- length(dat)
 
+    nDataEven <- (n %% 2) == 0
+
     if (is.null(lambdas)) {
       lambdas <- createLambdaSequence(n, nLambdas)
     }
@@ -139,8 +141,17 @@ cv.estimateSpikes <- function(dat, type = "ar1", gam = NULL,
             nnInd <- ceiling(nn)
 
             yhatTest <- 0.5 * (yhatTrain[1:(nnInd - 1)] + yhatTrain[2:nnInd])
-            if (fold == 1) {
-              yhatTest <- c(yhatTrain[1], yhatTest, yhatTrain[nn])
+
+            if (nDataEven) {
+              if (fold == 1) {
+                yhatTest <- c(yhatTrain[1], yhatTest)
+              }  else {
+                yhatTest <- c(yhatTest, yhatTrain[nn])
+              }
+            } else {
+              if (fold == 1) {
+                yhatTest <- c(yhatTrain[1], yhatTest, yhatTrain[nn])
+              }
             }
 
             cvMSE[lambdaInd, fold] <- mean( (yhatTest - testDat) ^ 2)
