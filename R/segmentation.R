@@ -96,12 +96,13 @@ addNewTimeOptimalFits <- function(optimalFits, indicesPtsKeep, t) {
 
 computeSegmentation <- function(dat, params, penalty, type, hardThreshold) {
     n <- length(dat)
-    table <- matrix(0, nrow = n + 1, ncol = 3)  ## rows index 0...t, cols index: t, F(t), \tau'_t
+    ## rows index 0...t, cols index: t, F(t), \tau'_t, # taus
+    table <- matrix(0, nrow = n + 1, ncol = 4)
     table[1, 2] <- -penalty
     R = c(0)  ## restricted set for mins
 
     optimalFits <- list(type = type, activeRowSufficientStats = NULL, hardThreshold = hardThreshold)
-
+    keepChgPts <- list()
     for (t in 1:n) {
         nR <- length(R)
         minimizers <- numeric(nR)  ## minimize over R
@@ -117,12 +118,17 @@ computeSegmentation <- function(dat, params, penalty, type, hardThreshold) {
         table[t + 1, 3] <- R[which.min(minimizers)]
 
         indicesPtsKeep <- (minimizers < table[t + 1, 2])
+        # print(paste0("Cost F(r): ", table[t + 1, 2]))
+        # print(minimizers)
         R <- c(R[indicesPtsKeep], t)
+        keepChgPts[[t]] <- R
+
+        table[t + 1, 4] <- length(R)
 
         if (t < n)
             optimalFits <- addNewTimeOptimalFits(optimalFits, indicesPtsKeep, t)
     }
-    return(table)
+    return(list(table = table, keepChgPts = keepChgPts))
 }
 
 findChangePts <- function(vecChgPts) {
@@ -249,6 +255,8 @@ estimateSpikes <- function(dat, gam, lambda,
   checkValidParameters(gam, type)
   checkData(dat)
   table <- computeSegmentation(dat, gam, lambda, type, hardThreshold)
+  keepChgPts <- table$keepChgPts
+  table <- table$table
   changePts <- findChangePts(table[, 3])
   spikes <- changePts[-1] + 1
   if (calcFittedValues) {
@@ -261,7 +269,9 @@ estimateSpikes <- function(dat, gam, lambda,
               call = match.call(),
               gam = gam,
               lambda = lambda,
-              cost = table[(2:dim(table)[[1]]), 2])
+              cost = table[(2:dim(table)[[1]]), 2],
+              nIntervals = table[(2:dim(table)[[1]]) ,4],
+              keepChgPts = keepChgPts)
   class(out) <- "estimatedSpikes"
   return(out)
 }
