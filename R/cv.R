@@ -90,6 +90,8 @@ cv.estimateSpikes <- function(dat, type = "ar1", gam = NULL,
 
     if (is.null(lambdas)) {
       lambdas <- createLambdaSequence(n, nLambdas)
+    } else {
+      nLambdas <- length(lambdas)
     }
 
     if (is.null(gam))
