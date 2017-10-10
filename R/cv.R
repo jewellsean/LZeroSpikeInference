@@ -124,6 +124,7 @@ cv.estimateSpikes <- function(dat, type = "ar1", gam = NULL,
         trainDat <- dat[trainInd]
         testDat <- dat[testInd]
         nn <- length(trainInd)
+        nTest <- length(testDat)
 
         for (lambdaInd in 1:nLambdas) {
             if (optimizeGams) {
@@ -146,17 +147,20 @@ cv.estimateSpikes <- function(dat, type = "ar1", gam = NULL,
 
             if (nDataEven) {
               if (fold == 1) {
-                yhatTest <- c(yhatTrain[1], yhatTest)
+                yTest <- testDat[2 : nTest]
               }  else {
-                yhatTest <- c(yhatTest, yhatTrain[nn])
+                yTest <- testDat[1 : (nTest - 1)]
               }
             } else {
               if (fold == 1) {
-                yhatTest <- c(yhatTrain[1], yhatTest, yhatTrain[nn])
+                yTest <- testDat[2 : (nTest - 1)]
+              } else {
+                yTest <- testDat
               }
             }
 
-            cvMSE[lambdaInd, fold] <- mean( (yhatTest - testDat) ^ 2)
+            stopifnot(length(yTest) == length(yhatTest))
+            cvMSE[lambdaInd, fold] <- mean( (yhatTest - yTest) ^ 2)
 
             if (optimizeGams) {
                 for (i in 1:nParams) paramsOut[[i]][lambdaInd, fold] <-
