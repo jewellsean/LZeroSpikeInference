@@ -16,7 +16,7 @@ where the indicator variable 1_{(A,B)} equals 1 if the event A cup B holds, and 
 Install 
 -----
 
-If ``devtools`` is installed type 
+In R, if ``devtools`` is installed type 
 
 ```r
 devtools::install_github("jewellsean/LZeroSpikeInference")
@@ -30,6 +30,31 @@ Once installed type
 library(LZeroSpikeInference)
 ?LZeroSpikeInference
 ```
+
+Python
+----
+
+This package can be called from Python using the (rpy2)[https://rpy2.bitbucket.io/] package. To install LZeroSpikeInference and rpy2 for use in Python first
+
+1. Install R (for example `apt-get install r-base`)
+
+and then from within R install this package (as above). Then pip install rpy2
+
+2. pip install --user rpy2
+
+The following example illustrates use of the LZeroSpikeInference package from python 
+
+```python
+from numpy import array
+import rpy2.robjects.packages
+lzsi = rpy2.robjects.packages.importr("LZeroSpikeInference")
+d = lzsi.simulateAR1(n = 500, gam = 0.998, poisMean = 0.009, sd = 0.15, seed = 8)
+fit = lzsi.estimateSpikes(d[1], **{'gam':0.998, 'lambda':8, 'type':"ar1"})
+spikes = array(fit[0])
+fittedValues = array(fit[1])
+```
+
+Thanks to Luke Campagnola for suggesting this approach!  
 
 Reference
 -----
