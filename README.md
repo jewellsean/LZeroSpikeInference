@@ -34,7 +34,7 @@ library(LZeroSpikeInference)
 Python
 ----
 
-This package can be called from Python using the (rpy2)[https://rpy2.bitbucket.io/] package. To install LZeroSpikeInference and rpy2 for use in Python first
+This package can be called from Python using the [py2](https://rpy2.bitbucket.io/) package. To install LZeroSpikeInference and rpy2 for use in Python first
 
 1. Install R (for example `apt-get install r-base`)
 
