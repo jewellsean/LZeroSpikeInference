@@ -6,7 +6,7 @@ This algorithm solves the optimization problems
 ### AR(1) model
 minimize_{c1,...,cT} 0.5 sum_{t=1}^T ( y_t - c_t )^2 + lambda sum_{t=2}^T 1_{c_t neq gamma c_{t-1} }
 
-for the global optimum, where y_t is the observed fluorescence at the tth timepoint.
+for the global optimum, where y_t is the observed fluorescence at the tth timepoint. We also solve the above problem with the constraint that c_t >= 0 (hardThreshold = T). 
 
 ### AR(1) with intercept
 minimize_{c1,...,cT,b1,...,bT} 0.5 sum_{t=1}^T (y_t - c_t - b_t)^2 + lambda sum_{t=2}^T 1_{c_t neq gamma c_{t-1}, b_t neq b_{t-1} }
