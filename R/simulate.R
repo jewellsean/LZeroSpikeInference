@@ -49,7 +49,7 @@ simulateAR1 <- function(n, gam, poisMean, sd, seed)
     if (i > 1)
       c[i] <- gam * c[i - 1] + eta[i]
     else
-      c[i] <- 1 + eta[i]
+      c[i] <- eta[i]
 
     f[i] <- c[i] + rnorm(n = 1, mean = 0, sd = sd)
   }
