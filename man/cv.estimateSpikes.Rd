@@ -51,6 +51,10 @@ minimize_{c1,...,cT} 0.5 sum_{t=1}^T ( y_t - c_t )^2 + lambda sum_{t=2}^T 1_{c_t
 for the global optimum, where $y_t$ is the observed fluorescence at the tth
 timepoint.
 
+If hardThreshold = T then the additional constraint
+c_t >= 0 is added to the optimzation problem above.
+
+
 \strong{AR(1) with intercept:}
 minimize_{c1,...,cT,b1,...,bT} 0.5 sum_{t=1}^T (y_t - c_t - b_t)^2 + lambda sum_{t=2}^T 1_{c_t neq gamma c_{t-1}, b_t neq b_{t-1} }
 where the indicator variable 1_{(A,B)} equals 1 if the event A cup B holds, and equals zero otherwise.
