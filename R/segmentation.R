@@ -23,6 +23,7 @@ computeCost <- function(dat, optimalFits, ind, n, params) {
     }
 
     if (optimalFits$type == "intercept") {
+      if (n == 1) {return(0)}
         sumGammaC2 <- (1 - params^(2 * n))/(1 - params^2)
         sumGammaC <- (1 - params^n)/(1 - (params))
 
@@ -113,6 +114,9 @@ computeSegmentation <- function(dat, params, penalty, type, hardThreshold) {
             minimizers[ind] <- table[R[ind] + 1, 2] +
               computeCost(dat[(R[ind] + 1):t], optimalFits, ind, t - R[ind], params)
         }
+        # print(paste0("Cost F(r): ", table[t + 1, 2]))
+        # print(minimizers)
+
         table[t + 1, 1] <- t
         table[t + 1, 2] <- min(minimizers) + penalty
         table[t + 1, 3] <- R[which.min(minimizers)]
