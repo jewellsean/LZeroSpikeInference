@@ -6,7 +6,7 @@
 trace.}
 \usage{
 estimateSpikes(dat, gam, lambda, type = "ar1", calcFittedValues = TRUE,
-  hardThreshold = FALSE)
+  hardThreshold = FALSE, pelt = TRUE)
 }
 \arguments{
 \item{dat}{fluorescence data}
@@ -20,6 +20,8 @@ estimateSpikes(dat, gam, lambda, type = "ar1", calcFittedValues = TRUE,
 \item{calcFittedValues}{TRUE to calculate fitted values.}
 
 \item{hardThreshold}{boolean specifying whether the calcium concentration must be non-negative (in the AR-1 problem)}
+
+\item{pelt}{boolean specifying whether PELT (default) or optimal partitioning algorithm is used to compute the segmentation. Both yield the same solution, however, PELT can be orders of magnitude faster.}
 }
 \value{
 Returns a list with elements:

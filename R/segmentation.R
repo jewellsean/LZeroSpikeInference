@@ -95,7 +95,7 @@ addNewTimeOptimalFits <- function(optimalFits, indicesPtsKeep, t) {
     return(optimalFits)
 }
 
-computeSegmentation <- function(dat, params, penalty, type, hardThreshold) {
+computeSegmentation <- function(dat, params, penalty, type, hardThreshold, pelt = TRUE) {
     n <- length(dat)
     ## rows index 0...t, cols index: t, F(t), \tau'_t, # taus
     table <- matrix(0, nrow = n + 1, ncol = 4)
@@ -121,10 +121,17 @@ computeSegmentation <- function(dat, params, penalty, type, hardThreshold) {
         table[t + 1, 2] <- min(minimizers) + penalty
         table[t + 1, 3] <- R[which.min(minimizers)]
 
-        indicesPtsKeep <- (minimizers < table[t + 1, 2])
+        if (pelt) {
+          indicesPtsKeep <- (minimizers < table[t + 1, 2])
+        } else {
+          indicesPtsKeep <- rep(TRUE, length(minimizers))
+        }
+
         # print(paste0("Cost F(r): ", table[t + 1, 2]))
         # print(minimizers)
+
         R <- c(R[indicesPtsKeep], t)
+
         keepChgPts[[t]] <- R
 
         table[t + 1, 4] <- length(R)
@@ -196,6 +203,7 @@ computeFittedValues <- function(dat, changePts, params, type, hardThreshold = FA
 #' @param type type of model, must be one of AR(1) 'ar1', AR(1) + intercept 'intercept'.
 #' @param calcFittedValues TRUE to calculate fitted values.
 #' @param hardThreshold boolean specifying whether the calcium concentration must be non-negative (in the AR-1 problem)
+#' @param pelt boolean specifying whether PELT (default) or optimal partitioning algorithm is used to compute the segmentation. Both yield the same solution, however, PELT can be orders of magnitude faster.
 #'
 #' @return Returns a list with elements:
 #' @return \code{changePts} the set of changepoints
@@ -257,11 +265,11 @@ computeFittedValues <- function(dat, changePts, params, type, hardThreshold = FA
 #'
 #' @export
 estimateSpikes <- function(dat, gam, lambda,
-                           type = "ar1", calcFittedValues = TRUE, hardThreshold = FALSE) {
+                           type = "ar1", calcFittedValues = TRUE, hardThreshold = FALSE, pelt = TRUE) {
   checkValidType(type)
   checkValidParameters(gam, type)
   checkData(dat)
-  table <- computeSegmentation(dat, gam, lambda, type, hardThreshold)
+  table <- computeSegmentation(dat, gam, lambda, type, hardThreshold, pelt)
   keepChgPts <- table$keepChgPts
   table <- table$table
   changePts <- findChangePts(table[, 3])
@@ -278,7 +286,8 @@ estimateSpikes <- function(dat, gam, lambda,
               lambda = lambda,
               cost = table[(2:dim(table)[[1]]), 2],
               nIntervals = table[(2:dim(table)[[1]]) ,4],
-              keepChgPts = keepChgPts)
+              keepChgPts = keepChgPts,
+              table = table)
   class(out) <- "estimatedSpikes"
   return(out)
 }
